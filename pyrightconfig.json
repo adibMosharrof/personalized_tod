@@ -1,0 +1,9 @@
+{
+    "exclude": [
+        "**/envs/",
+        "**/.git/",
+        "**/outputs/",
+        "**/data/",
+        "**/processed_data/"
+    ]
+}

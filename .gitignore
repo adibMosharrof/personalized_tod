@@ -1,0 +1,10 @@
+.vscode/
+.pytest_cache
+data/
+envs/
+processed_data/
+__pycache__/
+outputs/
+logs/
+results/
+slurm_out/
