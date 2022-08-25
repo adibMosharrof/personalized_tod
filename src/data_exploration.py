@@ -7,10 +7,11 @@ import seaborn as sns
 from dotmap import DotMap
 from omegaconf import DictConfig
 from tqdm import tqdm
+from dataset_config import DATASET_NAMES
 
-from babi_dataclasses import BabiTask1SystemColumns
 from hydra_configs import DataModuleConfig, DataExplorationConfig
 from my_datamodules import MyDataModule, Steps
+from task_dataclasses import Task1_System_Columns
 
 
 class DataExploration:
@@ -27,7 +28,8 @@ class DataExploration:
         indexes = [i - 1 for i in data_index]
         df_api = df.iloc[indexes]
         system_df = df_api.system.str.split(" ", expand=True)
-        system_df.columns = BabiTask1SystemColumns.values()
+        # system_df.columns = BabiTask1SystemColumns.values()
+        system_df.columns = Task1_System_Columns.values()
         system_df = system_df.assign(step=step)
         return system_df[system_df.columns[1:]]
 
@@ -78,8 +80,7 @@ class DataExploration:
         datasets = dm.setup()
         system_df = []
         for (step_key, step_val), (_, vals) in zip(Steps.items(), datasets.items()):
-            dataset = vals.data
-            dialog_index = vals.dialog_index
+            dataset, dialog_index = vals.data.dataset, vals.data.dialog_index
             df = pd.DataFrame(dataset)
             user_avg = df.user.apply(len).mean()
             system_avg = df.system.apply(len).mean()
@@ -88,7 +89,13 @@ class DataExploration:
             print(
                 f"Step: {step_key}, user avg: {user_avg}, system avg: {system_avg}, turn len avg: {turn_len_avg}"
             )
-            system_df.append(self.get_system_df(df, dialog_index, step_key))
+            system_df.append(
+                self.get_system_df(
+                    df,
+                    dialog_index,
+                    step_key,
+                )
+            )
         all_system_df = pd.concat(system_df, axis=0)
         self.plot_system_distribution(all_system_df, self.dataset_name, self.task_name)
 
