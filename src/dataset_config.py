@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotmap import DotMap
 
-from babi_dataclasses import BaseTask, BabiTask1
+from task_dataclasses import BaseTask, BabiTask1, PersonalizedTask1
 
 DATASET_TASK_MAP = DotMap(
     task1="task1-API-calls", task2="task2-API-refine", task3="task3-options"
@@ -36,12 +36,9 @@ class DatasetConfig(abc.ABC):
     def set_task_class(self, task_name) -> BaseTask:
         raise (NotImplementedError(task_name))
 
+    @abc.abstractmethod
     def get_task_file_path(self, stage="train"):
-        return (
-            self.data_root
-            / self.folder_name
-            / f"{self.file_prefix}-{DATASET_TASK_MAP[self.task_name]}-{stage}.txt"
-        )
+        raise (NotImplementedError())
 
 
 @dataclass
@@ -59,16 +56,55 @@ class BabiDatasetConfig(DatasetConfig):
     def set_task_class(self, task_name) -> BaseTask:
         if TASK_NAMES.task1 == task_name:
             self.task_class = BabiTask1
+        else:
+            raise ValueError("task not specified")
+
+    def get_task_file_path(self, stage="train"):
+        return (
+            self.data_root
+            / self.folder_name
+            / f"{self.file_prefix}-{DATASET_TASK_MAP[self.task_name]}-{stage}.txt"
+        )
+
+
+@dataclass
+class PersonalizedDatasetConfig(DatasetConfig):
+    def __init__(
+        self,
+        name=DATASET_NAMES.personalized,
+        folder_name="personalized-dialog-dataset",
+        dataset_variant="full",
+        file_prefix="personalized-dialog",
+        task_name="task1",
+        data_root=None,
+    ):
+        super().__init__(name, folder_name, file_prefix, task_name, data_root)
+        self.dataset_variant = dataset_variant
+
+    def set_task_class(self, task_name) -> BaseTask:
+        if TASK_NAMES.task1 == task_name:
+            self.task_class = PersonalizedTask1
+        else:
+            raise ValueError("task not specified")
+
+    def get_task_file_path(self, stage="train"):
+        return (
+            self.data_root
+            / self.folder_name
+            / self.dataset_variant
+            / f"{self.file_prefix}-{DATASET_TASK_MAP[self.task_name]}-{stage}.txt"
+        )
 
 
 class DatasetConfigFactory:
     @staticmethod
     def create(dataset_name: str, task_name: str, data_root: Path) -> DatasetConfig:
+        config_class = None
         if dataset_name == DATASET_NAMES.babi:
-            return BabiDatasetConfig(task_name=task_name, data_root=data_root)
+            config_class = BabiDatasetConfig
         elif dataset_name == DATASET_NAMES.personalized:
-            return BabiDatasetConfig(
-                task_name=DATASET_TASK_MAP.task2, data_root=data_root
-            )
+            config_class = PersonalizedDatasetConfig
         else:
             raise ValueError(f"Unknown dataset name: {dataset_name}")
+
+        return config_class(task_name=task_name, data_root=data_root)
