@@ -4,7 +4,7 @@ import numpy as np
 from omegaconf import DictConfig
 
 from hydra_configs import DataPrepConfig
-from my_datamodules import Steps
+from tod_utils import Steps
 import pandas as pd
 
 from task_dataclasses import BaseTask
@@ -41,8 +41,20 @@ class DataPrep:
         for (step_key, step_val), split_percent in zip(
             Steps.items(), self.cfg.data_split_percent
         ):
-            step_dir = self.cfg.out_root / step_key
+            step_dir = self.cfg.processed_data_root / step_key
             step_dir.mkdir(exist_ok=True, parents=True)
+            out_path = get_csv_data_path(
+                self.cfg.dataset_name,
+                self.cfg.task_name,
+                step_key,
+                split_percent,
+                self.cfg.processed_data_root,
+            )
+            if out_path.exists() and not self.cfg.override_data_prep:
+                print(
+                    f"CSV file for {step_key} already exists, so skipping data preparation"
+                )
+                continue
             turn_data = []
             raw_data = self.cfg.dataset_config.task_class.read_raw_data(
                 self.cfg.dataset_config.get_task_file_path(step_val), split_percent
@@ -60,13 +72,7 @@ class DataPrep:
             utils.write_csv(
                 ["dialog_id", "turn_id", "context", "target"],
                 np.concatenate(turn_data, axis=0),
-                get_csv_data_path(
-                    self.cfg.dataset_name,
-                    self.cfg.task_name,
-                    step_key,
-                    split_percent,
-                    self.cfg.out_root,
-                ),
+                out_path,
             )
 
 

@@ -1,5 +1,6 @@
-task_name: task1
-# dataset_name: babi
-dataset_name: personalized
-
-
+pretrain_epochs: 10
+train_epochs: 20
+train_batch_size: 10
+eval_batch_size: 40
+override_data_prep: false
+# pretrain_model: outputs/2022-08-26/10-24-09/results/pretrain/checkpoint-430

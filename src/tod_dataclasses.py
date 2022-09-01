@@ -1,36 +1,12 @@
+from collections import namedtuple
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Union
+from typing import Optional, Tuple, Union
 
+from transformers import AutoTokenizer, GPT2LMHeadModel
 from task_dataclasses import BaseTask
-
-
-class SpecialTokens(str, Enum):
-    begin_target = "<|begin_target|>"
-    end_target = "<|end_target|>"
-
-    begin_context = "<|begin_context|>"
-    end_context = "<|end_context|>"
-    system = "<|system|>"
-    user = "<|user|>"
-    begin_last_user_utterance = "<|beginlastuserutterance|>"
-    end_last_user_utterance = "<|endlastuserutterance|>"
-
-    begin_response = "<|beginresponse|>"
-    end_response = "<|endresponse|>"
-
-    begin_query = "<|beginquery|>"
-    end_query = "<|endquery|>"
-
-    begin_slots = "<|beginslots|>"
-    end_slots = "<|endslots|>"
-
-    silence = "<SILENCE>"
-
-    @classmethod
-    def list(cls):
-        return [c.value for c in cls]
+from tod_utils import SpecialTokens
 
 
 @dataclass
@@ -106,6 +82,13 @@ class TodTurn:
             str(self.context),
             str(self.target),
         ]
+
+
+TodDatasetRow = namedtuple("TodDatasetRow", "context target")
+TodTestDatasetBatch = namedtuple(
+    "TodTestDatasetBatch",
+    "context_tokens context_attention_masks target_tokens target_attention_masks contexts targets",
+)
 
 
 def get_csv_data_path(

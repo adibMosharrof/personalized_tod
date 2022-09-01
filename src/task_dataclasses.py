@@ -6,6 +6,8 @@ from typing import Optional
 from dotmap import DotMap
 from tqdm import tqdm
 
+from tod_utils import SpecialPredictions, SpecialTokens
+
 
 class QueryEnum(str, Enum):
     API_CALL = "api_call"
@@ -45,6 +47,14 @@ class BaseTask(abc.ABC):
             data = data[: dialog_index[num_dialogs]]
             return DotMap(data=data, dialog_index=dialog_index)
 
+    # @abc.abstractclassmethod
+    # def from_string(self, string: str) -> "BaseTask":
+    #     raise (NotImplementedError())
+
+    @abc.abstractclassmethod
+    def dummy(self) -> "BaseTask":
+        raise (NotImplementedError())
+
 
 @dataclass
 class BabiTask1(BaseTask):
@@ -63,6 +73,15 @@ class BabiTask1(BaseTask):
                 user=user,
             )
         return self(turn_id=turn_id, user=user, system=system, dialog_id=dialog_id)
+
+    @classmethod
+    def dummy(self) -> "BabiTask1":
+        return self(
+            turn_id=-1,
+            user=SpecialPredictions.DUMMY,
+            system=SpecialPredictions.DUMMY,
+            dialog_id=-1,
+        )
 
 
 @dataclass
