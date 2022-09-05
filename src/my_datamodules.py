@@ -81,15 +81,6 @@ class MyDataModule:
             targets=targets,
         )
 
-        return DotMap(
-            context_tokens=torch.stack([*context_tokens["input_ids"]]),
-            context_attention_masks=torch.stack([*context_tokens["attention_mask"]]),
-            target_tokens=torch.stack([*target_tokens["input_ids"]]),
-            target_attention_masks=torch.stack([*target_tokens["attention_mask"]]),
-            contexts=contexts,
-            targets=targets,
-        )
-
     def train_eval_tokenize(self, item):
         return self.cfg.tokenizer.encode(
             item,

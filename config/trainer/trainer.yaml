@@ -1,6 +1,12 @@
-pretrain_epochs: 10
-train_epochs: 20
-train_batch_size: 10
+pretrain_epochs: 1
+train_epochs: 1
+train_batch_size: 13
 eval_batch_size: 40
-override_data_prep: false
+override_data_prep: true
+task_name: task3
 # pretrain_model: outputs/2022-08-26/10-24-09/results/pretrain/checkpoint-430
+data_split_percent:
+  - .01
+  - .01
+  - .01
+should_test: true

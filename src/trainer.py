@@ -9,7 +9,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from hydra_configs import DataModuleConfig, TrainerConfig
+from hydra_configs import DataModuleConfig, InferenceConfig, TrainerConfig
+from inference import Inference
 from my_datamodules import MyDataModule, Steps
 
 
@@ -82,6 +83,12 @@ class MyTrainer:
         print("-" * 50)
         self.cfg.tokenizer.save_pretrained(self.cfg.out_root)
         self.cfg.logger.info(f"out dir {os.getcwd()}")
+
+        if self.cfg.should_test:
+            inf = Inference(
+                InferenceConfig.from_trainer_config(self.cfg, model, self.cfg.tokenizer)
+            )
+            inf.run()
 
 
 @hydra.main(config_path="../config/trainer", config_name="trainer")

@@ -8,12 +8,14 @@ import humps
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from regex import D
 import seaborn as sns
 from numerize.numerize import numerize
 from data_prep import DataPrep
 from sklearn.metrics import confusion_matrix
 
 from dotmap import DotMap
+from dataset_config import DatasetConfig
 
 from tod_utils import SpecialTokens
 
@@ -167,11 +169,18 @@ class PredictionsLoggerBase(abc.ABC):
 
 
 class GenericPredictionLogger(PredictionsLoggerBase):
-    def __init__(self, columns: list[str], metric_name: str, is_ref_class: bool = True):
+    def __init__(
+        self,
+        columns: list[str],
+        metric_name: str,
+        is_ref_class: bool = True,
+        dataset_config: DatasetConfig = None,
+    ):
         super().__init__()
         self.columns = columns
         self.metric_name = metric_name
         self.is_ref_class = is_ref_class
+        self.dataset_config = dataset_config
 
     def log(self, pred=None, ref=None, is_correct=None):
         self.refs.append(ref)
@@ -201,9 +210,36 @@ class GenericPredictionLogger(PredictionsLoggerBase):
             self._plot_stacked_bar_chart(
                 data,
                 "Proportion",
-                f"{humps.pascalize(self.metric_name)} {humps.pascalize(col)}s",
-                f"{humps.pascalize(self.metric_name)}{humps.pascalize(col)} Predictions",
-                out_dir / f"{self.metric_name}_{col}_predictions.png",
+                " ".join(
+                    f"{humps.pascalize(t)}"
+                    for t in [
+                        self.dataset_config.name,
+                        self.dataset_config.task_name,
+                        self.metric_name,
+                        col,
+                    ]
+                ),
+                # f"{humps.pascalize(self.metric_name)} {humps.pascalize(col)}s",
+                "_".join(
+                    f"{humps.pascalize(t)}"
+                    for t in [
+                        self.dataset_config.name,
+                        self.dataset_config.task_name,
+                        self.metric_name,
+                        col,
+                        "Predictions",
+                    ]
+                ),
+                # f"{humps.pascalize(self.metric_name)}{humps.pascalize(col)} Predictions",
+                "_".join(
+                    [
+                        self.dataset_config.name,
+                        self.dataset_config.task_name,
+                        self.metric_name,
+                        col,
+                        "predictions.png",
+                    ]
+                ),
             )
 
 
@@ -214,11 +250,16 @@ class TodMetricsEnum(str, Enum):
 
 class PredictionLoggerFactory:
     @staticmethod
-    def create(metric: TodMetricsEnum) -> PredictionsLoggerBase:
+    def create(
+        metric: TodMetricsEnum, dataset_config: DatasetConfig
+    ) -> PredictionsLoggerBase:
         if metric in [TodMetricsEnum.SLOTS, TodMetricsEnum.QUERY]:
             columns = [logger_cols.REFERENCES]
             is_ref_class = False
 
         return GenericPredictionLogger(
-            metric_name=metric.value, columns=columns, is_ref_class=is_ref_class
+            metric_name=metric.value,
+            columns=columns,
+            is_ref_class=is_ref_class,
+            dataset_config=dataset_config,
         )

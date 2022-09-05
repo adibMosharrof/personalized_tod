@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotmap import DotMap
 
-from task_dataclasses import BaseTask, BabiTask1, PersonalizedTask1
+from task_dataclasses import BaseTask, BabiTask12, PersonalizedTask1, BabiTask3
 
 DATASET_TASK_MAP = DotMap(
     task1="task1-API-calls", task2="task2-API-refine", task3="task3-options"
@@ -55,7 +55,11 @@ class BabiDatasetConfig(DatasetConfig):
 
     def set_task_class(self, task_name) -> BaseTask:
         if TASK_NAMES.task1 == task_name:
-            self.task_class = BabiTask1
+            self.task_class = BabiTask12
+        elif TASK_NAMES.task2 == task_name:
+            self.task_class = BabiTask12
+        elif TASK_NAMES.task3 == task_name:
+            self.task_class = BabiTask3
         else:
             raise ValueError("task not specified")
 

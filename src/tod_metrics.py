@@ -2,6 +2,7 @@ import abc
 import enum
 from pathlib import Path
 from typing import Optional
+from dataset_config import DatasetConfig
 
 from predictions_logger import (
     PredictionLoggerFactory,
@@ -137,12 +138,15 @@ class GenericMetric(TodMetricsBase):
         default_value: any = None,
         score: bool = 0.0,
         is_cached=False,
+        dataset_config: DatasetConfig = None,
     ) -> None:
         super().__init__(task_class=task_class)
         self.all_preds = []
         self.all_refs = []
         self.tod_metric_enum = tod_metric_enum
-        self.prediction_logger = PredictionLoggerFactory.create(tod_metric_enum)
+        self.prediction_logger = PredictionLoggerFactory.create(
+            tod_metric_enum, dataset_config
+        )
         self.start_token = start_token
         self.end_token = end_token
 
@@ -185,25 +189,28 @@ class GenericMetric(TodMetricsBase):
 
     def __str__(self) -> str:
         macro_score, micro_score = self.compute()
-        return (
-            f"{self.tod_metric_enum} Macro F1: {macro_score:.2f} Micro F1: {micro_score:.2f}"
-        )
+        return f"{self.tod_metric_enum} Macro F1: {macro_score:.2f} Micro F1: {micro_score:.2f}"
 
 
 class GenericMetricFactory:
     @staticmethod
-    def create(tod_metric_enum: TodMetricsEnum, task_class: BaseTask) -> GenericMetric:
+    def create(
+        tod_metric_enum: TodMetricsEnum,
+        task_class: BaseTask,
+        dataset_config: DatasetConfig,
+    ) -> GenericMetric:
+
         if tod_metric_enum == TodMetricsEnum.SLOTS:
-            return GenericMetric(
-                task_class=task_class,
-                tod_metric_enum=tod_metric_enum,
-                start_token=SpecialTokens.begin_slots,
-                end_token=SpecialTokens.end_slots,
-            )
+            s_token = SpecialTokens.begin_slots
+            e_token = SpecialTokens.end_slots
         elif tod_metric_enum == TodMetricsEnum.QUERY:
-            return GenericMetric(
-                task_class=task_class,
-                tod_metric_enum=tod_metric_enum,
-                start_token=SpecialTokens.begin_query,
-                end_token=SpecialTokens.end_query,
-            )
+            s_token = SpecialTokens.begin_query
+            e_token = SpecialTokens.end_query
+
+        return GenericMetric(
+            task_class=task_class,
+            tod_metric_enum=tod_metric_enum,
+            start_token=s_token,
+            end_token=e_token,
+            dataset_config=dataset_config,
+        )

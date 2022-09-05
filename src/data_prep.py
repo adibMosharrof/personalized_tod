@@ -44,8 +44,8 @@ class DataPrep:
             step_dir = self.cfg.processed_data_root / step_key
             step_dir.mkdir(exist_ok=True, parents=True)
             out_path = get_csv_data_path(
-                self.cfg.dataset_name,
-                self.cfg.task_name,
+                self.cfg.dataset_config.name,
+                self.cfg.dataset_config.task_name,
                 step_key,
                 split_percent,
                 self.cfg.processed_data_root,

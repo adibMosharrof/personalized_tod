@@ -23,10 +23,14 @@ class Inference:
         self.tod_metrics = MetricCollection(
             {
                 "slots": GenericMetricFactory.create(
-                    TodMetricsEnum.SLOTS, cfg.dataset_config.task_class
+                    TodMetricsEnum.SLOTS,
+                    cfg.dataset_config.task_class,
+                    cfg.dataset_config,
                 ),
                 "query": GenericMetricFactory.create(
-                    TodMetricsEnum.QUERY, cfg.dataset_config.task_class
+                    TodMetricsEnum.QUERY,
+                    cfg.dataset_config.task_class,
+                    cfg.dataset_config,
                 ),
             }
         )
@@ -56,8 +60,7 @@ class Inference:
                 out_root=self.cfg.out_dir,
                 num_workers=self.cfg.num_workers,
                 test_batch_size=self.cfg.batch_size,
-                dataset_name=self.cfg.dataset_name,
-                task_name=self.cfg.task_name,
+                dataset_config=self.cfg.dataset_config,
                 tokenizer=self.cfg.tokenizer,
                 override_data_prep=self.cfg.override_data_prep,
                 data_split_percent=self.cfg.data_split_percent,
@@ -68,7 +71,7 @@ class Inference:
     def test(self):
         test_csv_out_data = []
         headers = ["target", "prediction"]
-        text_csv_out_path = f"predictions_{self.cfg.dataset_name}_{self.cfg.task_name}_{self.cfg.data_split_percent}.csv"
+        text_csv_out_path = f"predictions_{self.cfg.dataset_config.name}_{self.cfg.dataset_config.task_name}_{self.cfg.data_split_percent}.csv"
         all_targets = []
         all_predictions = []
         for batch in tqdm(self.dataloader):
